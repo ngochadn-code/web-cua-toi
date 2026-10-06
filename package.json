@@ -1,0 +1,19 @@
+{
+  "name": "web-cua-toi",
+  "version": "1.0.0",
+  "description": "Trang cá nhân Vũ Văn Tú",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
