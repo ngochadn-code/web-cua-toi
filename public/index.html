@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trang của tôi</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://dog.ceo; img-src 'self' https://dog.ceo; script-src 'self' 'unsafe-inline';">
+</head>
+<body>
+
+  <div class="card">
+    <h3>🐶 Ảnh chó ngẫu nhiên</h3>
+    <img id="dogImage" src="" alt="Ảnh chó" style="width: 100%; max-width: 400px; border-radius: 8px; margin-top: 10px;">
+    <br>
+    <button onclick="taiAnhCho()" style="margin-top: 10px;">Tải ảnh mới</button>
+  </div>
+
+  <script>
+  function taiAnhCho() {
+    const img = document.getElementById("dogImage");
+
+    fetch("https://dog.ceo/api/breeds/image/random")
+      .then(res => res.json())
+      .then(duLieu => {
+        console.log("Đường dẫn ảnh chó:", duLieu.message);
+        img.src = duLieu.message;
+      })
+      .catch(loi => {
+        console.log("Lỗi gọi API:", loi);
+        alert("Không tải được ảnh chó, bạn thử lại nhé!");
+      });
+  }
+
+  taiAnhCho();
+  </script>
+
+</body>
+</html>

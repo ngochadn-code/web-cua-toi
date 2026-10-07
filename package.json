@@ -15,5 +15,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ngochadn-code/web-cua-toi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ngochadn-code/web-cua-toi/issues"
+  },
+  "homepage": "https://github.com/ngochadn-code/web-cua-toi#readme"
 }
