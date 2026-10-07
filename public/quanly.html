@@ -126,70 +126,53 @@
     </div>
   </div>
 
-    <script>
-    const thamSo = new URLSearchParams(window.location.search);
-    const matKhau = thamSo.get("mk");
+  <script>
+    // Không cần mật khẩu trên link nữa — Cookie tự xử lý!
+    fetch(`/api/danhsach`)
+      .then(phanHoi => phanHoi.json())
+      .then(duLieu => {
+        if (duLieu.loi) {
+          document.getElementById("danhSach").innerHTML = `
+            <p style="text-align:center;color:#ef4444;padding:30px;">
+              🔒 Vui lòng <a href="/danhsach" style="color:#2563eb">đăng nhập</a> trước
+            </p>
+          `;
+          return;
+        }
 
-    if (!matKhau) {
-      document.getElementById("danhSach").innerHTML = `
-        <p style="text-align:center;color:#ef4444;padding:30px;">
-          🔒 Thiếu mật khẩu! Vào link: <code>?mk=123456</code>
-        </p>
-      `;
-    } else {
-      // Gọi API lấy dữ liệu
-      fetch(`/api/danhsach?mk=${matKhau}`)
-        .then(phanHoi => phanHoi.json())
-        .then(duLieu => {
-          if (duLieu.loi) {
-            document.getElementById("danhSach").innerHTML = "<p>❌ Không có quyền xem</p>";
-            return;
-          }
+        // Cập nhật số liệu
+        document.getElementById("tong").textContent = duLieu.tong;
+        document.getElementById("chuaDoc").textContent = duLieu.chuaDoc;
+        document.getElementById("daDoc").textContent = duLieu.daDoc;
 
-          // Cập nhật số liệu thống kê
-          document.getElementById("tong").textContent = duLieu.tong;
-          document.getElementById("chuaDoc").textContent = duLieu.chuaDoc;
-          document.getElementById("daDoc").textContent = duLieu.daDoc;
+        // Hiển thị danh sách
+        const vungDanhSach = document.getElementById("danhSach");
+        if (duLieu.tong === 0) {
+          vungDanhSach.innerHTML = `<p style="text-align:center;color:#888;">Chưa có lời nhắn nào 📭</p>`;
+          return;
+        }
 
-          // Hiển thị danh sách
-          const vungDanhSach = document.getElementById("danhSach");
-          
-          if (duLieu.tong === 0) {
-            vungDanhSach.innerHTML = `<p style="text-align:center;color:#888;">Chưa có lời nhắn nào 📭</p>`;
-            return;
-          }
-
-          vungDanhSach.innerHTML = duLieu.duLieu.map(item => `
-            <div class="loinhan ${item.daDoc ? "da-doc" : "chua-doc"}">
-              <div class="thong-tin">
-                <span>
-                  <strong>${item.ten}</strong> • ${item.email} • ${item.ngayGui}
-                </span>
-                ${!item.daDoc ? `
-                  <button class="nut nut-xanh" onclick="danhDauDaDoc('${item.id}')">
-                    ✅ Đánh dấu đã đọc
-                  </button>
-                ` : `
-                  <span class="nut nut-xam">✓ Đã đọc</span>
-                `}
-              </div>
-              <div class="noi-dung">${item.noiDung}</div>
+        vungDanhSach.innerHTML = duLieu.duLieu.map(item => `
+          <div class="loinhan ${item.daDoc ? "da-doc" : "chua-doc"}">
+            <div class="thong-tin">
+              <span>
+                <strong>${item.ten}</strong> • ${item.email} • ${item.ngayGui}
+              </span>
+              ${!item.daDoc ? `
+                <button class="nut nut-xanh" onclick="danhDauDaDoc('${item.id}')">
+                  ✅ Đánh dấu đã đọc
+                </button>
+              ` : `
+                <span class="nut nut-xam">✓ Đã đọc</span>
+              `}
             </div>
-          `).join("");
-        })
-        .catch(loi => {
-          document.getElementById("danhSach").innerHTML = `<p>❌ Lỗi tải dữ liệu</p>`;
-        });
-    }
-
-    // Hàm đánh dấu đã đọc
-    function danhDauDaDoc(id) {
-      const thamSo = new URLSearchParams(window.location.search);
-      const matKhau = thamSo.get("mk");
-      
-      fetch(`/danhsach/da-doc?mk=${matKhau}&id=${id}`)
-        .then(() => location.reload()); // Tải lại trang
-    }
+            <div class="noi-dung">${item.noiDung}</div>
+          </div>
+        `).join("");
+      })
+      .catch(() => {
+        document.getElementById("danhSach").innerHTML = `<p>❌ Lỗi tải dữ liệu</p>`;
+      });
   </script>
 </body>
 </html>
