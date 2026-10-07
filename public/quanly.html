@@ -4,175 +4,143 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản lý lời nhắn 📋</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-      min-height: 100vh;
-      padding: 20px;
-    }
-    .hop-chinh {
-      max-width: 900px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-      padding: 30px;
-    }
-    h1 {
-      color: #2563eb;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .thong-ke {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-    }
-    .so {
-      text-align: center;
-      padding: 10px 20px;
-      background: #f0f9ff;
-      border-radius: 10px;
-    }
-    .so-lon {
-      font-size: 24px;
-      font-weight: bold;
-      color: #2563eb;
-    }
-    .loinhan {
-      padding: 18px;
-      margin: 12px 0;
-      border-radius: 10px;
-      border-left: 4px solid;
-      transition: all 0.2s;
-    }
-    .loinhan:hover {
-      transform: translateX(5px);
-    }
-    .chua-doc {
-      border-color: #ef4444;
-      background: #fef2f2;
-    }
-    .da-doc {
-      border-color: #22c55e;
-      background: #f0fdf4;
-      opacity: 0.7;
-    }
-    .thong-tin {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .noi-dung {
-      line-height: 1.6;
-      color: #333;
-    }
-    .nut {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: bold;
-    }
-    .nut-xanh { background: #22c55e; color: white; }
-    .nut-do { background: #ef4444; color: white; }
-    .nut-xam { background: #e5e7eb; color: #666; cursor: default; }
-    .cuoi-trang {
-      text-align: center;
-      margin-top: 30px;
-    }
-    .lien-ket {
-      color: #2563eb;
-      text-decoration: none;
-      font-weight: bold;
-    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:system-ui;background:linear-gradient(135deg,#f5f7fa,#c3cfe2);min-height:100vh;padding:15px}
+    .hop{max-width:950px;margin:0 auto;background:white;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,0.1);padding:25px}
+    h1{color:#2563eb;text-align:center;margin-bottom:20px;font-size:1.7rem}
+    .thong-ke{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+    .so{text-align:center;padding:15px;border-radius:12px;background:linear-gradient(135deg,#eff6ff,#dbeafe)}
+    .so-lon{font-size:28px;font-weight:bold;color:#2563eb}
+    .so-lon.do{color:#ef4444}
+    .so-lon.xanh{color:#22c55e}
+    .cong-cu{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+    .cong-cu input, .cong-cu select, .cong-cu a{padding:10px 14px;border:2px solid #e5e7eb;border-radius:8px;font-size:15px}
+    .cong-cu input{flex:1;min-width:200px}
+    .nut{padding:10px 16px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block;text-align:center}
+    .nut.xanh{background:#22c55e;color:white}
+    .nut.xanh:hover{background:#16a34a}
+    .bieu-do{height:200px;margin-bottom:25px;padding:15px;background:#fafafa;border-radius:12px}
+    .loinhan{padding:16px;margin:10px 0;border-radius:10px;border-left:4px solid;transition:0.2s}
+    .loinhan:hover{transform:translateX(4px)}
+    .chua-doc{border-color:#ef4444;background:#fef2f2}
+    .da-doc{border-color:#22c55e;background:#f0fdf4;opacity:0.75}
+    .tt{font-size:14px;color:#666;margin-bottom:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    .nd{line-height:1.6;color:#333}
+    .cuoi{text-align:center;margin-top:25px;padding-top:20px;border-top:1px solid #eee}
+    .an{display:none !important}
+    @media(max-width:600px){.thong-ke{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <div class="hop-chinh">
+  <div class="hop">
     <h1>📋 Quản lý lời nhắn</h1>
 
+    <!-- Thống kê số liệu -->
     <div class="thong-ke">
-      <div class="so">
-        <div class="so-lon" id="tong">0</div>
-        <div>Tổng số</div>
-      </div>
-      <div class="so">
-        <div class="so-lon" style="color:#ef4444" id="chuaDoc">0</div>
-        <div>Chưa đọc</div>
-      </div>
-      <div class="so">
-        <div class="so-lon" style="color:#22c55e" id="daDoc">0</div>
-        <div>Đã đọc</div>
-      </div>
+      <div class="so"><div class="so-lon" id="tong">0</div><div>Tổng số</div></div>
+      <div class="so"><div class="so-lon do" id="chuaDoc">0</div><div>Chưa đọc</div></div>
+      <div class="so"><div class="so-lon xanh" id="daDoc">0</div><div>Đã đọc</div></div>
     </div>
 
-    <div id="danhSach">
-      <p style="text-align:center;color:#888;padding:30px;">Đang tải dữ liệu...</p>
+    <!-- Biểu đồ -->
+    <div class="bieu-do" id="khoiBieuDo">
+      <canvas id="bieuDo"></canvas>
     </div>
 
-    <div class="cuoi-trang">
-      <a href="/" class="lien-ket">← Về trang chủ</a>
+    <!-- Công cụ tìm kiếm & lọc -->
+    <div class="cong-cu">
+      <input type="text" id="timKiem" placeholder="🔍 Tìm theo tên, email, nội dung...">
+      <select id="loc">
+        <option value="tat-ca">Tất cả</option>
+        <option value="chua-doc">Chưa đọc</option>
+        <option value="da-doc">Đã đọc</option>
+      </select>
+      <a href="/api/xuat-csv" class="nut xanh" download>📥 Xuất CSV</a>
+    </div>
+
+    <!-- Danh sách -->
+    <div id="danhSach"><p style="text-align:center;color:#888;padding:30px;">Đang tải...</p></div>
+
+    <div class="cuoi">
+      <a href="/" class="nut" style="background:#e5e7eb;color:#444">← Về trang chủ</a>
     </div>
   </div>
 
   <script>
-    // Không cần mật khẩu trên link nữa — Cookie tự xử lý!
-    fetch(`/api/danhsach`)
-      .then(phanHoi => phanHoi.json())
-      .then(duLieu => {
-        if (duLieu.loi) {
-          document.getElementById("danhSach").innerHTML = `
-            <p style="text-align:center;color:#ef4444;padding:30px;">
-              🔒 Vui lòng <a href="/danhsach" style="color:#2563eb">đăng nhập</a> trước
-            </p>
-          `;
-          return;
-        }
+    let bieuDo = null;
 
-        // Cập nhật số liệu
-        document.getElementById("tong").textContent = duLieu.tong;
-        document.getElementById("chuaDoc").textContent = duLieu.chuaDoc;
-        document.getElementById("daDoc").textContent = duLieu.daDoc;
+    // Tải & hiển thị dữ liệu
+    async function taiDuLieu() {
+      const tim = document.getElementById("timKiem").value;
+      const loc = document.getElementById("loc").value;
+      let url = "/api/danhsach";
+      const thamSo = [];
+      if (tim) thamSo.push(`tim=${encodeURIComponent(tim)}`);
+      if (loc !== "tat-ca") thamSo.push(`loc=${loc}`);
+      if (thamSo.length) url += "?" + thamSo.join("&");
 
-        // Hiển thị danh sách
-        const vungDanhSach = document.getElementById("danhSach");
-        if (duLieu.tong === 0) {
-          vungDanhSach.innerHTML = `<p style="text-align:center;color:#888;">Chưa có lời nhắn nào 📭</p>`;
-          return;
-        }
+      const res = await fetch(url).then(r => r.json());
+      if (res.loi) {
+        document.getElementById("danhSach").innerHTML = `<p style="text-align:center;color:#ef4444;padding:30px;">🔒 Vui lòng <a href="/danhsach" style="color:#2563eb">đăng nhập</a></p>`;
+        document.querySelector(".bieu-do").classList.add("an");
+        return;
+      }
 
-        vungDanhSach.innerHTML = duLieu.duLieu.map(item => `
-          <div class="loinhan ${item.daDoc ? "da-doc" : "chua-doc"}">
-            <div class="thong-tin">
-              <span>
-                <strong>${item.ten}</strong> • ${item.email} • ${item.ngayGui}
-              </span>
-              ${!item.daDoc ? `
-                <button class="nut nut-xanh" onclick="danhDauDaDoc('${item.id}')">
-                  ✅ Đánh dấu đã đọc
-                </button>
-              ` : `
-                <span class="nut nut-xam">✓ Đã đọc</span>
-              `}
-            </div>
-            <div class="noi-dung">${item.noiDung}</div>
+      // Cập nhật số liệu
+      const tongTatCa = res.tong;
+      document.getElementById("tong").textContent = tongTatCa;
+      document.getElementById("chuaDoc").textContent = res.chuaDoc;
+      document.getElementById("daDoc").textContent = res.daDoc;
+
+      // Biểu đồ
+      capNhatBieuDo(res.chuaDoc, res.daDoc);
+
+      // Danh sách
+      const ds = document.getElementById("danhSach");
+      if (res.hienThi === 0) {
+        ds.innerHTML = `<p style="text-align:center;color:#888;padding:30px;">Không tìm thấy lời nhắn nào</p>`;
+        return;
+      }
+      ds.innerHTML = res.duLieu.map(i => `
+        <div class="loinhan ${i.daDoc ? "da-doc" : "chua-doc"}">
+          <div class="tt">
+            <span><strong>${i.ten}</strong> • ${i.email} • ${i.ngayGui}</span>
+            ${!i.daDoc ? `<button class="nut xanh" onclick="danhDau('${i.id}')">✅ Đã đọc</button>` : `<span style="color:#22c55e;font-weight:bold">✓ Đã đọc</span>`}
           </div>
-        `).join("");
-      })
-      .catch(() => {
-        document.getElementById("danhSach").innerHTML = `<p>❌ Lỗi tải dữ liệu</p>`;
+          <div class="nd">${i.noiDung}</div>
+        </div>
+      `).join("");
+    }
+
+    // Cập nhật biểu đồ tròn
+    function capNhatBieuDo(chua, da) {
+      document.querySelector(".bieu-do").classList.remove("an");
+      const ctx = document.getElementById("bieuDo").getContext("2d");
+      if (bieuDo) bieuDo.destroy();
+      bieuDo = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Chưa đọc", "Đã đọc"],
+          datasets: [{ data: [chua, da], backgroundColor: ["#ef4444", "#22c55e"], borderWidth: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
       });
+    }
+
+    // Đánh dấu đã đọc
+    async function danhDau(id) {
+      await fetch(`/danhsach/da-doc?id=${id}`);
+      taiDuLieu();
+    }
+
+    // Sự kiện
+    document.getElementById("timKiem").addEventListener("input", taiDuLieu);
+    document.getElementById("loc").addEventListener("change", taiDuLieu);
+
+    // Khởi chạy
+    taiDuLieu();
   </script>
 </body>
 </html>

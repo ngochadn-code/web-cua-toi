@@ -1,2 +1,3 @@
-node_modules
-loinhan.json
+node_modules/
+nhatky.txt
+.env
