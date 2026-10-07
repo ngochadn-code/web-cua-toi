@@ -2,36 +2,188 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Trang của tôi</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://dog.ceo; img-src 'self' https://dog.ceo; script-src 'self' 'unsafe-inline';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang Liên Hệ — Dự án Node.js</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .chinh {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+    }
+    h1 {
+      color: #1e40af;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+    .phu-de {
+      color: #475569;
+      font-size: 1rem;
+    }
+    .noi-dung {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+    @media (max-width: 700px) {
+      .noi-dung { grid-template-columns: 1fr; }
+    }
+    .khoi {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .anh-dai-dien {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
+    h2 {
+      color: #1e40af;
+      font-size: 1.25rem;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e0f2fe;
+    }
+    label {
+      display: block;
+      margin: 12px 0 5px;
+      font-weight: 500;
+      color: #334155;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background 0.2s;
+    }
+    button:hover { background: #1d4ed8; }
+    .thong-bao {
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      display: none;
+    }
+    .thong-bao.thanh-cong {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      display: block;
+    }
+    .thong-bao.loi {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      display: block;
+    }
+    .lien-ket-quan-ly {
+      text-align: center;
+      margin-top: 25px;
+    }
+    .lien-ket-quan-ly a {
+      color: #64748b;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+    .lien-ket-quan-ly a:hover {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
+  <div class="chinh">
+    <header>
+      <h1>🌐 Dự án Website Liên Hệ</h1>
+      <p class="phu-de">Xây dựng bằng Node.js + Express + MongoDB — từ máy i3, 4GB RAM 💻</p>
+    </header>
 
-  <div class="card">
-    <h3>🐶 Ảnh chó ngẫu nhiên</h3>
-    <img src="anh-cho.jpg" alt="Ảnh chó" style="width: 100%; max-width: 400px; border-radius: 8px; margin-top: 10px;">
-    <br>
-    <button onclick="taiAnhCho()" style="margin-top: 10px;">Tải ảnh mới</button>
+    <div class="noi-dung">
+      <!-- Khối ảnh & giới thiệu -->
+      <div class="khoi">
+        <img src="https://picsum.photos/id/237/600/400" alt="Ảnh minh họa" class="anh-dai-dien">
+        <h2>📌 Giới thiệu dự án</h2>
+        <p style="line-height: 1.8; color: #475569;">
+          Đây là dự án web hoàn chỉnh, xây dựng từ đầu với cấu hình tối thiểu.<br><br>
+          ✅ Gửi lời nhắn & lưu vào CSDL<br>
+          ✅ Trang quản lý bảo mật<br>
+          ✅ Thống kê, biểu đồ, tìm kiếm<br>
+          ✅ Xuất dữ liệu ra Excel<br>
+          ✅ Hoạt động trên điện thoại<br>
+          ✅ Triển khai trực tuyến
+        </p>
+      </div>
+
+      <!-- Khối form gửi lời nhắn -->
+      <div class="khoi">
+        <h2>✉️ Gửi lời nhắn</h2>
+        
+        <div id="thongBaoGui" class="thong-bao"></div>
+
+        <form action="/gui-loi-nhan" method="POST">
+          <label for="ten">Họ và tên</label>
+          <input type="text" id="ten" name="ten" placeholder="Nhập tên của bạn..." required>
+
+          <label for="email">Email liên hệ</label>
+          <input type="email" id="email" name="email" placeholder="example@email.com" required>
+
+          <label for="noiDung">Nội dung lời nhắn</label>
+          <textarea id="noiDung" name="noiDung" rows="5" placeholder="Viết điều bạn muốn gửi..." required></textarea>
+
+          <button type="submit">📤 Gửi lời nhắn</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="lien-ket-quan-ly">
+      <a href="/danhsach">🔐 Trang quản lý dự án</a>
+    </div>
   </div>
 
   <script>
-  function taiAnhCho() {
-    const img = document.getElementById("dogImage");
+    // Hiển thị thông báo sau khi gửi
+    const thamSo = new URLSearchParams(window.location.search);
+    const thongBao = document.getElementById("thongBaoGui");
 
-    fetch("https://dog.ceo/api/breeds/image/random")
-      .then(res => res.json())
-      .then(duLieu => {
-        console.log("Đường dẫn ảnh chó:", duLieu.message);
-        img.src = duLieu.message;
-      })
-      .catch(loi => {
-        console.log("Lỗi gọi API:", loi);
-        alert("Không tải được ảnh chó, bạn thử lại nhé!");
-      });
-  }
-
-  taiAnhCho();
+    if (thamSo.get("thongbao") === "gui-thanh-cong") {
+      thongBao.className = "thong-bao thanh-cong";
+      thongBao.textContent = "✅ Gửi lời nhắn thành công! Cảm ơn bạn đã góp ý 💚";
+    } else if (thamSo.get("loi")) {
+      thongBao.className = "thong-bao loi";
+      thongBao.textContent = "❌ Lỗi: " + thamSo.get("loi");
+    }
   </script>
-
 </body>
 </html>
