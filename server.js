@@ -357,6 +357,81 @@ app.get('/api/thong-ke/chi-tiet', yeuCauDangNhap, async (req, res) => {
   }
 })
 // === KHỞI ĐỘNG SERVER ===
+// === ✏️ CHỈNH SỬA TRỰC TIẾP ===
+app.put('/api/uoc-mo/:id', yeuCauDangNhap, async (req, res) => {
+  try {
+    const { noiDung, mucTien, ghiChu, ngayHen, doUuTien, hoanThanh } = req.body
+    
+    // Kiểm tra dữ liệu
+    if (noiDung !== undefined && noiDung.trim().length === 0) {
+      return res.json({ loi: 'Nội dung không được để trống! ✍️' })
+    }
+    if (mucTien !== undefined && (isNaN(Number(mucTien)) || Number(mucTien) < 0)) {
+      return res.json({ loi: 'Số tiền phải là số không âm! 💰' })
+    }
+
+    const uocMo = await UocMo.findOne({ _id: req.params.id, nguoiDungId: req.nguoiDungId })
+    if (!uocMo) return res.json({ loi: 'Không tìm thấy! 🛡️' })
+
+    // Cập nhật chỉ những trường được gửi
+    if (noiDung !== undefined) uocMo.noiDung = noiDung.trim()
+    if (mucTien !== undefined) uocMo.mucTien = Number(mucTien) || 0
+    if (ghiChu !== undefined) uocMo.ghiChu = ghiChu
+    if (ngayHen !== undefined) uocMo.ngayHen = ngayHen ? new Date(ngayHen) : null
+    if (doUuTien !== undefined) uocMo.doUuTien = doUuTien
+    if (hoanThanh !== undefined) {
+      uocMo.hoanThanh = Boolean(hoanThanh)
+      uocMo.ngayHoanThanh = Boolean(hoanThanh) ? new Date() : null
+    }
+
+    await uocMo.save()
+    res.json({ thanhCong: true, uocMo, thongBao: '✅ Đã cập nhật thành công!' })
+  } catch (err) {
+    res.json({ loi: 'Lỗi cập nhật: ' + err.message })
+  }
+})
+
+// === 🔔 KIỂM TRA THAY ĐỔI (đồng bộ real-time) ===
+app.get('/api/kiem-tra-thay-doi', yeuCauDangNhap, async (req, res) => {
+  try {
+    const lanCuoi = new Date(req.query.lanCuoi || 0)
+    const thayDoi = await UocMo.find({
+      nguoiDungId: req.nguoiDungId,
+      $or: [
+        { ngayTao: { $gt: lanCuoi } },
+        { ngayHoanThanh: { $gt: lanCuoioi } }
+      ]
+    }).sort({ _id: -1 })
+
+    res.json({
+      coThayDoi: thayDoi.length > 0,
+      danhSachMoi: thayDoi
+    })
+  } catch (err) {
+    res.json({ loi: 'Lỗi kiểm tra: ' + err.message })
+  }
+})
+
+// === 📤 LỊCH SỬ HOẠT ĐỘNG ===
+app.get('/api/lich-su', yeuCauDangNhap, async (req, res) => {
+  try {
+    const danhSach = await UocMo.find({ nguoiDungId: req.nguoiDungId })
+      .sort({ ngayTao: -1 })
+      .limit(20)
+
+    const lichSu = danhSach.map(mo => ({
+      id: mo._id,
+      noiDung: mo.noiDung,
+      hanhDong: mo.hoanThanh ? '✅ Đã hoàn thành' : '📝 Đang theo dõi',
+      thoiGian: mo.ngayHoanThanh || mo.ngayTao,
+      icon: mo.hoanThanh ? '🎉' : '💫'
+    }))
+
+    res.json(lichSu)
+  } catch (err) {
+    res.json({ loi: 'Lỗi lấy lịch sử: ' + err.message })
+  }
+})
 app.listen(PORT, () => {
   console.log(`🚀 Server chạy tại cổng ${PORT}`)
   console.log(`✅ Sẵn sàng — Bảo mật & Chia sẻ 🔒`)

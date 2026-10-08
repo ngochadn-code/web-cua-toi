@@ -1,40 +1,37 @@
-# 🌐 Dự án Website Liên Hệ & Quản Lý
+# ✨ Sổ Ước Mơ — Personal Goal Tracker
 
-> Xây dựng hoàn chỉnh từ máy tính cấu hình thấp (i3, 4GB RAM) — chuẩn dự án thực tế
+> Ứng dụng quản lý mục tiêu & ước mơ — xây dựng từ đầu với **React.js + Node.js + MongoDB**
 
-🔗 **Xem trực tuyến:** https://webngochadn.onrender.com  
-📅 **Ngày hoàn thành:** Tháng 10/2026  
-👤 **Phát triển bởi:** ngochadn
-
----
-
-## ✨ Tính năng chính
-
-| Tính năng | Mô tả |
-|---|---|
-| 📝 Gửi lời nhắn | Form xác thực, lưu vào CSDL |
-| 🔐 Đăng nhập quản lý | Bảo mật bằng Cookie, không lộ mật khẩu trên URL |
-| 📊 Thống kê trực quan | Biểu đồ tròn, số liệu cập nhật tức thì |
-| 🔍 Tìm kiếm & lọc | Theo tên, email, nội dung, trạng thái |
-| 📥 Xuất dữ liệu CSV | Mở bằng Excel / Google Sheets |
-| 📱 Giao diện di động | Tự điều chỉnh mọi màn hình |
-| ☁️ Dữ liệu bền vững | Lưu trên MongoDB Atlas, không bao giờ mất |
-| 📝 Nhật ký hoạt động | Theo dõi mọi thao tác trên hệ thống |
+🔗 **Xem sản phẩm:** [Điền link của bạn nhé!]
+📅 **Ngày hoàn thành:** Tháng 10/2026
+👤 **Tác giả:** [Tên của bạn]
 
 ---
 
-## 🛠 Công nghệ sử dụng
+## 📌 Giới thiệu
+Ứng dụng giúp theo dõi, quản lý mục tiêu cá nhân — từ tạo kế hoạch, đặt hạn đến thống kê tiến độ, sao lưu dữ liệu. Xây dựng trên máy tính **i3 + 4GB RAM** — chứng minh công nghệ hiện đại không cần máy mạnh! 💻✨
 
-| Công nghệ | Mục đích |
-|---|---|
-| **Node.js** | Môi trường chạy JavaScript phía máy chủ |
-| **Express.js** | Framework xây dựng web nhanh, gọn |
-| **MongoDB + Mongoose** | CSDL NoSQL — lưu dữ liệu linh hoạt |
-| **Chart.js** | Vẽ biểu đồ thống kê trực quan |
-| **Render.com** | Triển khai & lưu trữ website miễn phí |
-| **MongoDB Atlas** | Lưu trữ CSDL trên đám mây miễn phí |
-| **dotenv** | Quản lý biến môi trường — bảo mật thông tin nhạy cảm |
+## 🎯 Tính năng chính
+- ✅ **Đăng ký / Đăng nhập an toàn** — Mật khẩu mã hóa, xác thực JWT 🔐
+- ✅ **Thêm / Sửa / Xóa ước mơ** — Trực quan, thao tác dễ dàng ✏️
+- ✅ **Gợi ý thông minh** — Hệ thống đề xuất mục tiêu phù hợp 💡
+- ✅ **Lọc & Nhắc nhở** — Ưu tiên cao, sắp đến hạn, đã hoàn thành ⏰
+- ✅ **Thống kê chi tiết** — Biểu đồ tiến độ, tổng giá trị, hoạt động 📊
+- ✅ **Đồng bộ tự động** — Cập nhật thay đổi trên mọi thiết bị 🔄
+- ✅ **Xuất & Sao lưu dữ liệu** — Tải file JSON về máy bất kỳ lúc nào 💾
+- ✅ **Chia sẻ tiến độ** — Tạo link công khai cho người thân 💫
+- ✅ **Đổi giao diện** — 3 chủ đề màu sắc, ghi nhớ lựa chọn 🎨
+- ✅ **Hoàn toàn tương thích di động** — Mượt trên mọi điện thoại 📱
 
----
+## 🛠️ Công nghệ sử dụng
+| Lĩnh vực | Công nghệ | Lý do chọn |
+|---|---|---|
+| **Giao diện** | React.js + Vite | Nhanh, hiện đại, tối ưu máy yếu |
+| **Máy chủ** | Node.js + Express | Nhẹ, hiệu quả, dễ triển khai |
+| **Cơ sở dữ liệu** | MongoDB Atlas | Lưu trữ đám mây miễn phí, linh hoạt |
+| **Xác thực** | JWT | Bảo mật phiên đăng nhập chuẩn hiện đại |
+| **Triển khai FE** | Vercel | Tự động cập nhật khi đẩy code, miễn phí |
+| **Triển khai BE** | Render | Ổn định, phù hợp dự án cá nhân |
+| **Quản lý mã nguồn** | Git + GitHub | Chuẩn công ty toàn cầu |
 
-## 📂 Cấu trúc dự án
+## 📁 Cấu trúc dự án
