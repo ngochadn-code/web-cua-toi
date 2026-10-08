@@ -432,6 +432,105 @@ app.get('/api/lich-su', yeuCauDangNhap, async (req, res) => {
     res.json({ loi: 'Lỗi lấy lịch sử: ' + err.message })
   }
 })
+// === 🔍 TÌM KIẾM & LỌC NÂNG CAO ===
+app.get('/api/uoc-mo/tim-kiem/:tuKhoa', yeuCauDangNhap, async (req, res) => {
+  try {
+    const tuKhoa = req.params.tuKhoa
+    const dieuKien = {
+      nguoiDungId: req.nguoiDungId,
+      $or: [
+        { noiDung: { $regex: tuKhoa, $options: 'i' } },
+        { ghiChu: { $regex: tuKhoa, $options: 'i' } }
+      ]
+    }
+    
+    const ketQua = await UocMo.find(dieuKien).sort({ ngayTao: -1 })
+    res.json(ketQua)
+  } catch (err) {
+    res.json({ loi: 'Lỗi tìm kiếm: ' + err.message })
+  }
+})
+
+// === 📊 SẮP XẾP THEO NHIỀU TIÊU CHÍ ===
+app.get('/api/uoc-mo/sap-xep/:tieuChi/:thuTu', yeuCauDangNhap, async (req, res) => {
+  try {
+    const { tieuChi, thuTu } = req.params
+    const huong = thuTu === 'tang' ? 1 : -1
+    
+    // Chỉ cho phép sắp xếp theo các trường an toàn
+    const danhSachTruongAnToan = {
+      'ngayTao': 'ngayTao',
+      'mucTien': 'mucTien',
+      'doUuTien': 'doUuTien'
+    }
+    
+    const truongSapXep = danhSachTruongAnToan[tieuChi] || 'ngayTao'
+    const danhSach = await UocMo.find({ nguoiDungId: req.nguoiDungId })
+      .sort({ [truongSapXep]: huong })
+    
+    res.json(danhSach)
+  } catch (err) {
+    res.json({ loi: 'Lỗi sắp xếp: ' + err.message })
+  }
+})
+
+// === 📤 XUẤT DỮ LIỆU DẠNG CSV (mở Excel) ===
+app.get('/api/xuat-csv', yeuCauDangNhap, async (req, res) => {
+  try {
+    const danhSach = await UocMo.find({ nguoiDungId: req.nguoiDungId }).sort({ ngayTao: -1 })
+    
+    // Tạo tiêu đề CSV
+    let csv = 'Nội dung,Ghi chú,Số tiền,Ngày tạo,Ngày hẹn,Ưu tiên,Hoàn thành\n'
+    
+    // Thêm từng dòng
+    danhSach.forEach(mo => {
+      const noiDung = `"${(mo.noiDung || '').replace(/"/g, '""')}"`
+      const ghiChu = `"${(mo.ghiChu || '').replace(/"/g, '""')}"`
+      const tien = mo.mucTien || 0
+      const ngayTao = mo.ngayTao ? new Date(mo.ngayTao).toLocaleDateString('vi-VN') : ''
+      const ngayHen = mo.ngayHen ? new Date(mo.ngayHen).toLocaleDateString('vi-VN') : ''
+      const uuTien = { thap: 'Thấp', binh: 'Bình thường', cao: 'Cao' }[mo.doUuTien] || 'Bình thường'
+      const hoanThanh = mo.hoanThanh ? 'Có' : 'Chưa'
+      
+      csv += `${noiDung},${ghiChu},${tien},${ngayTao},${ngayHen},${uuTien},${hoanThanh}\n`
+    })
+    
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+    res.setHeader('Content-Disposition', `attachment; filename="so-uoc-mo-${new Date().toISOString().slice(0,10)}.csv"`)
+    res.send('\uFEFF' + csv) // \uFEFF giúp Excel hiển thị tiếng Việt đúng
+  } catch (err) {
+    res.json({ loi: 'Lỗi xuất CSV: ' + err.message })
+  }
+})
+
+// === ✅ KIỂM TRA DỮ LIỆU NÂNG CAO ===
+app.post('/api/kiem-tra-dulieu', yeuCauDangNhap, async (req, res) => {
+  try {
+    const { noiDung, mucTien, ngayHen } = req.body
+    const loi = []
+    
+    if (!noiDung || noiDung.trim().length < 3) {
+      loi.push('Nội dung ít nhất 3 ký tự! ✍️')
+    }
+    if (noiDung && noiDung.length > 200) {
+      loi.push('Nội dung không quá 200 ký tự! 📝')
+    }
+    if (mucTien !== undefined && (mucTien < 0 || mucTien > 999999999999)) {
+      loi.push('Số tiền không hợp lệ! 💰')
+    }
+    if (ngayHen && new Date(ngayHen) < new Date(new Date().toDateString())) {
+      loi.push('Ngày hẹn không được ở quá khứ! ⏰')
+    }
+    
+    if (loi.length > 0) {
+      return res.json({ hopLe: false, loi })
+    }
+    
+    res.json({ hopLe: true, thongBao: 'Dữ liệu hợp lệ ✅' })
+  } catch (err) {
+    res.json({ loi: 'Lỗi kiểm tra: ' + err.message })
+  }
+})
 app.listen(PORT, () => {
   console.log(`🚀 Server chạy tại cổng ${PORT}`)
   console.log(`✅ Sẵn sàng — Bảo mật & Chia sẻ 🔒`)
