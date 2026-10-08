@@ -1,6 +1,7 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
+const bcrypt = require('bcryptjs') // Thư viện mã hóa 🔒
 
 const app = express()
 const PORT = process.env.PORT || 8888
@@ -17,31 +18,41 @@ mongoose.connect('mongodb+srv://ngochadn68_db_user:PszceWhFPbYDcGj1@cluster0.eae
 // === MÔ HÌNH NGƯỜI DÙNG ===
 const nguoiDungSchema = new mongoose.Schema({
   tenDangNhap: { type: String, required: true, unique: true },
-  matKhau: { type: String, required: true },
+  matKhau: { type: String, required: true }, // Sẽ lưu dạng mã hóa
   ngayTao: { type: Date, default: Date.now }
 })
 const NguoiDung = mongoose.model('NguoiDung', nguoiDungSchema)
 
-// === MÔ HÌNH ƯỚC MƠ ===
+// === MÔ HÌNH ƯỚC MƠ — CẬP NHẬT THÊM NGÀY ===
 const uocMoSchema = new mongoose.Schema({
   noiDung: { type: String, required: true },
   mucTien: { type: Number, default: 0 },
   hoanThanh: { type: Boolean, default: false },
-  nguoiDungId: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', required: true }
+  nguoiDungId: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', required: true },
+  ngayTao: { type: Date, default: Date.now },        // Ngày tạo 🌟
+  ngayHoanThanh: { type: Date, default: null }       // Ngày đánh dấu xong ✅
 })
 const UocMo = mongoose.model('UocMo', uocMoSchema)
 
-// === ĐĂNG KÝ ===
+// === ĐĂNG KÝ — MÃ HÓA MẬT KHẨU TRƯỚC KHI LƯU 🔐 ===
 app.post('/api/dang-ky', async (req, res) => {
   try {
     const { tenDangNhap, matKhau } = req.body
     
+    // Kiểm tra tên đã tồn tại
     const daCo = await NguoiDung.findOne({ tenDangNhap })
     if (daCo) {
       return res.json({ loi: 'Tên đăng nhập đã có người dùng! 😅' })
     }
 
-    const nguoiDungMoi = new NguoiDung({ tenDangNhap, matKhau })
+    // Mã hóa mật khẩu — 10 vòng bảo mật
+    const matKhauMaHoa = await bcrypt.hash(matKhau, 10)
+
+    // Lưu mật khẩu đã mã hóa
+    const nguoiDungMoi = new NguoiDung({ 
+      tenDangNhap, 
+      matKhau: matKhauMaHoa 
+    })
     await nguoiDungMoi.save()
     
     res.json({ thanhCong: true, thongBao: 'Đăng ký thành công! 🎉 Đăng nhập thôi!' })
@@ -50,13 +61,20 @@ app.post('/api/dang-ky', async (req, res) => {
   }
 })
 
-// === ĐĂNG NHẬP ===
+// === ĐĂNG NHẬP — SO SÁNH MẬT KHẨU ĐÚNG SAI 🔐 ===
 app.post('/api/dang-nhap', async (req, res) => {
   try {
     const { tenDangNhap, matKhau } = req.body
-    const nguoiDung = await NguoiDung.findOne({ tenDangNhap, matKhau })
     
+    // Tìm người dùng
+    const nguoiDung = await NguoiDung.findOne({ tenDangNhap })
     if (!nguoiDung) {
+      return res.json({ loi: 'Sai tên đăng nhập hoặc mật khẩu! 🤔' })
+    }
+
+    // So sánh mật khẩu với bản mã hóa
+    const khopMatKhau = await bcrypt.compare(matKhau, nguoiDung.matKhau)
+    if (!khopMatKhau) {
       return res.json({ loi: 'Sai tên đăng nhập hoặc mật khẩu! 🤔' })
     }
 
@@ -71,7 +89,7 @@ app.post('/api/dang-nhap', async (req, res) => {
   }
 })
 
-// === LẤY DANH SÁCH ƯỚC MƠ ===
+// === LẤY DANH SÁCH ===
 app.get('/api/uoc-mo', async (req, res) => {
   try {
     const { nguoiDungId } = req.query
@@ -99,7 +117,8 @@ app.post('/api/uoc-mo', async (req, res) => {
     res.json({ loi: 'Lỗi lưu: ' + err.message })
   }
 })
-// === ĐÁNH DẤU HOÀN THÀNH ===
+
+// === ĐÁNH DẤU HOÀN THÀNH — CẬP NHẬT NGÀY ===
 app.patch('/api/uoc-mo/:id/hoan-thanh', async (req, res) => {
   try {
     const { id } = req.params
@@ -111,6 +130,8 @@ app.patch('/api/uoc-mo/:id/hoan-thanh', async (req, res) => {
     }
     
     uocMo.hoanThanh = !uocMo.hoanThanh
+    // Đặt ngày hoàn thành nếu đánh dấu xong, ngược lại bỏ
+    uocMo.ngayHoanThanh = uocMo.hoanThanh ? new Date() : null
     await uocMo.save()
     res.json(uocMo)
   } catch (err) {
@@ -134,8 +155,9 @@ app.delete('/api/uoc-mo/:id', async (req, res) => {
     res.json({ loi: 'Lỗi xóa: ' + err.message })
   }
 })
+
 // === CHẠY SERVER ===
 app.listen(PORT, () => {
   console.log(`🚀 Server chạy tại cổng ${PORT}`)
-  console.log(`✅ Sẵn sàng nhận yêu cầu từ React!`)
+  console.log(`✅ Bảo mật mật khẩu + ghi thời gian đã kích hoạt! 🔒`)
 })
