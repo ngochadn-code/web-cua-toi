@@ -273,7 +273,89 @@ app.get('/', (req, res) => {
     </html>
   `)
 })
+// === 🤖 GỢI Ý ƯỚC MƠ THÔNG MINH ===
+app.get('/api/goi-y/ngau-nhien', yeuCauDangNhap, async (req, res) => {
+  try {
+    const goiY = [
+      { noiDung: 'Tiết kiệm 1 triệu mua máy tính mới 💻', mucTien: 11000000, ghiChu: 'Để học lập trình mượt mà hơn' },
+      { noiDung: 'Hoàn thành khóa học React.js ⚛️', mucTien: 0, ghiChu: 'Đã có nền tảng, tiếp tục phát triển' },
+      { noiDung: 'Đi làm IT tại công ty tốt 🏢', mucTien: 0, ghiChu: 'Mục tiêu chính — chuẩn bị hồ sơ!' },
+      { noiDung: 'Đọc 2 cuốn sách kỹ năng 📚', mucTien: 150000, ghiChu: 'Nâng cao tư duy & hiệu suất' },
+      { noiDung: 'Tiết kiệm 5 triệu dự phòng 💰', mucTien: 5000000, ghiChu: 'An tâm theo đuổi đam mê' },
+      { noiDung: 'Học tiếng Anh giao tiếp 🗣️', mucTien: 0, ghiChu: 'Mở ra nhiều cơ hội hơn' },
+      { noiDung: 'Xây dựng 3 dự án hoàn chỉnh 🚀', mucTien: 0, ghiChu: 'Để có hồ sơ đẹp xin việc' },
+      { noiDung: 'Giữ sức khỏe tốt — tập thể dục mỗi ngày 💪', mucTien: 0, ghiChu: 'Sức khỏe là nền tảng!' }
+    ]
+    
+    // Lấy ngẫu nhiên 3 gợi ý
+    const ketQua = goiY.sort(() => Math.random() - 0.5).slice(0, 3)
+    res.json(ketQua)
+  } catch (err) {
+    res.json({ loi: 'Lỗi gợi ý: ' + err.message })
+  }
+})
 
+// === 📤 XUẤT DỮ LIỆU CÁ NHÂN ===
+app.get('/api/xuat-du-lieu', yeuCauDangNhap, async (req, res) => {
+  try {
+    const danhSach = await UocMo.find({ nguoiDungId: req.nguoiDungId }).sort({ _id: -1 })
+    const nguoiDung = await NguoiDung.findById(req.nguoiDungId)
+    
+    const duLieu = {
+      thongTin: {
+        tenDangNhap: nguoiDung.tenDangNhap,
+        ngayTaoTaiKhoan: nguoiDung.ngayTao,
+        thoiGianXuat: new Date()
+      },
+      tongSoUocMo: danhSach.length,
+      daHoanThanh: danhSach.filter(i => i.hoanThanh).length,
+      tongGiaTri: danhSach.reduce((t, i) => t + (i.mucTien || 0), 0),
+      danhSachUocMo: danhSach
+    }
+    
+    res.json(duLieu)
+  } catch (err) {
+    res.json({ loi: 'Lỗi xuất dữ liệu: ' + err.message })
+  }
+})
+
+// === 📈 THỐNG KÊ CHI TIẾT ===
+app.get('/api/thong-ke/chi-tiet', yeuCauDangNhap, async (req, res) => {
+  try {
+    const tatCa = await UocMo.find({ nguoiDungId: req.nguoiDungId })
+    const hienTai = new Date()
+    
+    // Tính theo tuần này
+    const tuanNay = tatCa.filter(i => {
+      const ngayTao = new Date(i.ngayTao)
+      const batDauTuan = new Date(hienTai.getTime() - hienTai.getDay() * 24 * 60 * 60 * 1000)
+      return ngayTao >= batDauTuan
+    })
+    
+    // Ưu tiên cao chưa hoàn thành
+    const uuTienCao = tatCa.filter(i => i.doUuTien === 'cao' && !i.hoanThanh)
+    
+    // Sắp đến hạn trong 7 ngày
+    const sapDenHan = tatCa.filter(i => {
+      if (!i.ngayHen || i.hoanThanh) return false
+      const ngayHen = new Date(i.ngayHen)
+      const tuanSau = new Date(hienTai.getTime() + 7 * 24 * 60 * 60 * 1000)
+      return ngayHen >= hienTai && ngayHen <= tuanSau
+    })
+    
+    res.json({
+      tongSo: tatCa.length,
+      daHoanThanh: tatCa.filter(i => i.hoanThanh).length,
+      tongGiaTri: tatCa.reduce((t, i) => t + (i.mucTien || 0), 0),
+      tuanNay: tuanNay.length,
+      uuTienCaoChuaXong: uuTienCao.length,
+      sapDenHan: sapDenHan.length,
+      danhSachSapDenHan: sapDenHan
+    })
+  } catch (err) {
+    res.json({ loi: 'Lỗi thống kê: ' + err.message })
+  }
+})
 // === KHỞI ĐỘNG SERVER ===
 app.listen(PORT, () => {
   console.log(`🚀 Server chạy tại cổng ${PORT}`)
