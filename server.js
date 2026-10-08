@@ -1,180 +1,96 @@
-require("dotenv").config();
 // ==============================================
-// SERVER — TỐI ƯU & MỞ RỘNG
+// SERVER ƯỚC MƠ — HOÀN CHỈNH
 // ==============================================
-const express = require("express");
-const path = require("path");
-const fs = require("fs");
-const { docDanhSach, themLoiNhanMoi, danhDauDaDoc } = require("./controllers/loiNhan");
 
+// 1. GỌI THƯ VIỆN
+const express = require('express');
+const mongoose = require('mongoose');
+
+// 2. KHỞI TẠO
 const ungDung = express();
+const PORT = 8888;
 
-// Cấu hình
-const MAT_KHAU_QUAN_LY = process.env.MAT_KHAU_QUAN_LY || "123456";
-const PORT = process.env.PORT || 3000;
+// 3. MỞ CỬA CHO REACT (CORS)
+ungDung.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
 ungDung.use(express.json());
-ungDung.use(express.urlencoded({ extended: true }));
-ungDung.use(express.static(path.join(__dirname, "public")));
 
-// Ghi nhật ký
-const ghiNhatKy = (hanhDong, thongTin = "") => {
-  const ngay = new Date().toLocaleString("vi-VN");
-  const dong = `[${ngay}] ${hanhDong} — ${thongTin}\n`;
-  console.log(dong.trim());
-  fs.appendFileSync("./nhatky.txt", dong, { flag: "a" });
-};
+// 4. KẾT NỐI MONGODB
+mongoose.connect('mongodb+srv://ngochadn68_db_user:PszceWhFPbYDcGj1@cluster0.eaex6lz.mongodb.net/?appName=Cluster0')
+  .then(() => console.log('✅ Kết nối MongoDB THÀNH CÔNG!'))
+  .catch(err => console.log('❌ Lỗi kết nối MongoDB:', err.message));
 
-// Kiểm tra đăng nhập
-const daDangNhap = (req) => req.headers.cookie?.includes("da_dang_nhap=true");
+// 5. KHUÔN DỮ LIỆU
+const uocMoSchema = new mongoose.Schema({
+  noiDung: String,
+  mucTien: { type: Number, default: 0 },
+  hoanThanh: { type: Boolean, default: false }
+});
+const UocMo = mongoose.model('UocMo', uocMoSchema);
 
-// ================= TRANG CHÍNH =================
-ungDung.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// 6. API — CÁC CHỨC NĂNG
+// Trang kiểm tra
+ungDung.get('/', (req, res) => {
+  res.send('✅ Server ĐANG CHẠY — MongoDB sẵn sàng! 🚀');
 });
 
-// ================= GỬI LỜI NHẮN =================
-ungDung.post("/gui-loi-nhan", (req, res) => {
+// Lấy danh sách
+ungDung.get('/api/uoc-mo', async (req, res) => {
   try {
-    const { ten, email, noiDung } = req.body;
-    const ketQua = themLoiNhanMoi(ten, email, noiDung);
-    if (ketQua.thanhCong) {
-      ghiNhatKy("GỬI LỜI NHẮN", `Tên: ${ten}`);
-      res.redirect("/?thongbao=gui-thanh-cong");
-    } else {
-      res.redirect(`/?loi=${encodeURIComponent(ketQua.loi.join("; "))}`);
-    }
-  } catch {
-    res.redirect("/?loi=Hệ thống bận, thử lại sau");
+    const danhSach = await UocMo.find().sort({ _id: -1 });
+    res.json(danhSach);
+  } catch (loi) {
+    res.status(500).json({ loi: 'Lỗi lấy dữ liệu' });
   }
 });
 
-// ================= TRANG QUẢN LÝ =================
-ungDung.get("/danhsach", (req, res) => {
-  if (daDangNhap(req)) {
-    return res.sendFile(path.join(__dirname, "public", "quanly.html"));
-  }
-  // Form đăng nhập
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Đăng nhập quản lý</title>
-      <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:system-ui;display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#3b82f6)}
-        .hop{background:white;padding:30px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.2);width:90%;max-width:380px}
-        h2{text-align:center;color:#1e3a8a;margin-bottom:25px}
-        input{width:100%;padding:14px;margin:8px 0;border:2px solid #e5e7eb;border-radius:10px;font-size:16px}
-        input:focus{outline:none;border-color:#3b82f6}
-        button{width:100%;padding:14px;background:#2563eb;color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:8px}
-        button:hover{background:#1d4ed8}
-        .loi{color:#dc2626;margin-top:15px;text-align:center;display:${req.query.loi ? "block" : "none"}}
-      </style>
-    </head>
-    <body>
-      <div class="hop">
-        <h2>🔐 Đăng nhập quản lý</h2>
-        <form method="POST">
-          <input type="password" name="mat_khau" placeholder="Nhập mật khẩu..." required>
-          <button>Đăng nhập</button>
-          <div class="loi">❌ Mật khẩu sai, thử lại</div>
-        </form>
-      </div>
-    </body>
-    </html>
-  `);
-});
-
-ungDung.post("/danhsach", (req, res) => {
-  if (req.body.mat_khau === MAT_KHAU_QUAN_LY) {
-    res.cookie("da_dang_nhap", "true", { maxAge: 86400000, httpOnly: true });
-    ghiNhatKy("ĐĂNG NHẬP", "Thành công");
-    res.redirect("/danhsach");
-  } else {
-    ghiNhatKy("ĐĂNG NHẬP THẤT BẠI", "Sai mật khẩu");
-    res.redirect("/danhsach?loi=1");
-  }
-});
-
-// ================= API DỮ LIỆU — TÌM KIẾM & LỌC =================
-ungDung.get("/api/danhsach", (req, res) => {
-  if (!daDangNhap(req)) return res.json({ loi: "Khong co quyen" });
-
+// Thêm mới
+ungDung.post('/api/uoc-mo', async (req, res) => {
   try {
-    const { tim, loc } = req.query;
-    let danhSach = docDanhSach();
-
-    // Tìm kiếm
-    if (tim) {
-      const tuKhoa = tim.toLowerCase();
-      danhSach = danhSach.filter(i =>
-        i.ten.toLowerCase().includes(tuKhoa) ||
-        i.email.toLowerCase().includes(tuKhoa) ||
-        i.noiDung.toLowerCase().includes(tuKhoa)
-      );
-    }
-
-    // Lọc: chua-doc / da-doc
-    if (loc === "chua-doc") danhSach = danhSach.filter(i => !i.daDoc);
-    if (loc === "da-doc") danhSach = danhSach.filter(i => i.daDoc);
-
-    res.json({
-      tong: docDanhSach().length,
-      hienThi: danhSach.length,
-      chuaDoc: docDanhSach().filter(i => !i.daDoc).length,
-      daDoc: docDanhSach().filter(i => i.daDoc).length,
-      duLieu: danhSach
+    const uocMoi = new UocMo({
+      noiDung: req.body.noiDung,
+      mucTien: req.body.mucTien || 0
     });
-  } catch {
-    res.json({ loi: "Lỗi hệ thống" });
+    await uocMoi.save();
+    res.json(uocMoi);
+  } catch (loi) {
+    res.status(500).json({ loi: 'Lỗi thêm dữ liệu' });
   }
 });
 
-// ================= ĐÁNH DẤU ĐÃ ĐỌC =================
-ungDung.get("/danhsach/da-doc", (req, res) => {
-  if (!daDangNhap(req)) return res.json({ thanhCong: false });
+// Đánh dấu hoàn thành
+ungDung.put('/api/uoc-mo/:id', async (req, res) => {
   try {
-    danhDauDaDoc(req.query.id);
-    ghiNhatKy("ĐÁNH DẤU", `ID: ${req.query.id}`);
-    res.json({ thanhCong: true });
-  } catch {
-    res.json({ thanhCong: false });
+    const capNhat = await UocMo.findByIdAndUpdate(
+      req.params.id,
+      { hoanThanh: req.body.hoanThanh },
+      { new: true }
+    );
+    res.json(capNhat);
+  } catch (loi) {
+    res.status(500).json({ loi: 'Lỗi cập nhật' });
   }
 });
 
-// ================= XUẤT DỮ LIỆU CSV =================
-ungDung.get("/api/xuat-csv", (req, res) => {
-  if (!daDangNhap(req)) return res.send("Không có quyền");
-  const ds = docDanhSach();
-  const csv = "Tên,Email,Nội dung,Ngày,Trạng thái\n" +
-    ds.map(i => `"${i.ten}","${i.email}","${i.noiDung.replace(/"/g, '""')}","${i.ngayGui}","${i.daDoc ? "Đã đọc" : "Chưa đọc"}"`).join("\n");
-  res.setHeader("Content-Disposition", "attachment; filename=loi-nhan.csv");
-  res.type("text/csv").send(csv);
+// Xóa
+ungDung.delete('/api/uoc-mo/:id', async (req, res) => {
+  try {
+    await UocMo.findByIdAndDelete(req.params.id);
+    res.json({ thongBao: 'Đã xóa thành công' });
+  } catch (loi) {
+    res.status(500).json({ loi: 'Lỗi xóa' });
+  }
 });
 
-// ================= THỐNG KÊ CHO BIỂU ĐỒ =================
-ungDung.get("/api/thongke", (req, res) => {
-  if (!daDangNhap(req)) return res.json({ loi: "Khong co quyen" });
-  const ds = docDanhSach();
-  res.json({
-    tong: ds.length,
-    chuaDoc: ds.filter(i => !i.daDoc).length,
-    daDoc: ds.filter(i => i.daDoc).length,
-    // Nhóm theo ngày
-    theoNgay: ds.reduce((acc, i) => {
-      const ngay = i.ngayGui.split(" ")[0];
-      acc[ngay] = (acc[ngay] || 0) + 1;
-      return acc;
-    }, {})
-  });
-});
-
-// Khởi động
+// 7. CHẠY SERVER
 ungDung.listen(PORT, () => {
-  console.log("=".repeat(55));
-  console.log("✅ SERVER — Tối ưu & Mở rộng");
-  console.log(`📍 http://localhost:${PORT}`);
-  console.log("=".repeat(55));
+  console.log('=====================================');
+  console.log(`🚀 Server chạy tại: http://localhost:${PORT}`);
+  console.log(`📡 Sẵn sàng nhận yêu cầu từ React!`);
+  console.log('=====================================');
 });
