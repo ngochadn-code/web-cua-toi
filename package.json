@@ -9,9 +9,23 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "express": "^4.22.3",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^7.8.12"
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "description": "> Xây dựng hoàn chỉnh từ máy tính cấu hình thấp (i3, 4GB RAM) — chuẩn dự án thực tế",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ngochadn-code/web-cua-toi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ngochadn-code/web-cua-toi/issues"
+  },
+  "homepage": "https://github.com/ngochadn-code/web-cua-toi#readme"
 }
