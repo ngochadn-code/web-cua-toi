@@ -99,7 +99,41 @@ app.post('/api/uoc-mo', async (req, res) => {
     res.json({ loi: 'Lỗi lưu: ' + err.message })
   }
 })
+// === ĐÁNH DẤU HOÀN THÀNH ===
+app.patch('/api/uoc-mo/:id/hoan-thanh', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { nguoiDungId } = req.body
+    
+    const uocMo = await UocMo.findOne({ _id: id, nguoiDungId })
+    if (!uocMo) {
+      return res.json({ loi: 'Không tìm thấy hoặc không có quyền! 🛡️' })
+    }
+    
+    uocMo.hoanThanh = !uocMo.hoanThanh
+    await uocMo.save()
+    res.json(uocMo)
+  } catch (err) {
+    res.json({ loi: 'Lỗi cập nhật: ' + err.message })
+  }
+})
 
+// === XÓA ƯỚC MƠ ===
+app.delete('/api/uoc-mo/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { nguoiDungId } = req.body
+    
+    const ketQua = await UocMo.deleteOne({ _id: id, nguoiDungId })
+    if (ketQua.deletedCount === 0) {
+      return res.json({ loi: 'Không tìm thấy hoặc không có quyền! 🛡️' })
+    }
+    
+    res.json({ thanhCong: true, thongBao: 'Đã xóa! 🗑️' })
+  } catch (err) {
+    res.json({ loi: 'Lỗi xóa: ' + err.message })
+  }
+})
 // === CHẠY SERVER ===
 app.listen(PORT, () => {
   console.log(`🚀 Server chạy tại cổng ${PORT}`)
