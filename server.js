@@ -1,96 +1,107 @@
-// ==============================================
-// SERVER ƯỚC MƠ — HOÀN CHỈNH
-// ==============================================
+const express = require('express')
+const mongoose = require('mongoose')
+const cors = require('cors')
 
-// 1. GỌI THƯ VIỆN
-const express = require('express');
-const mongoose = require('mongoose');
+const app = express()
+const PORT = process.env.PORT || 8888
 
-// 2. KHỞI TẠO
-const ungDung = express();
-const PORT = 8888;
+// === CẤU HÌNH ===
+app.use(cors())
+app.use(express.json())
 
-// 3. MỞ CỬA CHO REACT (CORS)
-ungDung.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  next();
-});
-
-ungDung.use(express.json());
-
-// 4. KẾT NỐI MONGODB
+// === KẾT NỐI MONGODB ===
 mongoose.connect('mongodb+srv://ngochadn68_db_user:PszceWhFPbYDcGj1@cluster0.eaex6lz.mongodb.net/?appName=Cluster0')
   .then(() => console.log('✅ Kết nối MongoDB THÀNH CÔNG!'))
-  .catch(err => console.log('❌ Lỗi kết nối MongoDB:', err.message));
+  .catch(err => console.log('❌ Lỗi kết nối:', err.message))
 
-// 5. KHUÔN DỮ LIỆU
+// === MÔ HÌNH NGƯỜI DÙNG ===
+const nguoiDungSchema = new mongoose.Schema({
+  tenDangNhap: { type: String, required: true, unique: true },
+  matKhau: { type: String, required: true },
+  ngayTao: { type: Date, default: Date.now }
+})
+const NguoiDung = mongoose.model('NguoiDung', nguoiDungSchema)
+
+// === MÔ HÌNH ƯỚC MƠ ===
 const uocMoSchema = new mongoose.Schema({
-  noiDung: String,
+  noiDung: { type: String, required: true },
   mucTien: { type: Number, default: 0 },
-  hoanThanh: { type: Boolean, default: false }
-});
-const UocMo = mongoose.model('UocMo', uocMoSchema);
+  hoanThanh: { type: Boolean, default: false },
+  nguoiDungId: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', required: true }
+})
+const UocMo = mongoose.model('UocMo', uocMoSchema)
 
-// 6. API — CÁC CHỨC NĂNG
-// Trang kiểm tra
-ungDung.get('/', (req, res) => {
-  res.send('✅ Server ĐANG CHẠY — MongoDB sẵn sàng! 🚀');
-});
-
-// Lấy danh sách
-ungDung.get('/api/uoc-mo', async (req, res) => {
+// === ĐĂNG KÝ ===
+app.post('/api/dang-ky', async (req, res) => {
   try {
-    const danhSach = await UocMo.find().sort({ _id: -1 });
-    res.json(danhSach);
-  } catch (loi) {
-    res.status(500).json({ loi: 'Lỗi lấy dữ liệu' });
-  }
-});
+    const { tenDangNhap, matKhau } = req.body
+    
+    const daCo = await NguoiDung.findOne({ tenDangNhap })
+    if (daCo) {
+      return res.json({ loi: 'Tên đăng nhập đã có người dùng! 😅' })
+    }
 
-// Thêm mới
-ungDung.post('/api/uoc-mo', async (req, res) => {
+    const nguoiDungMoi = new NguoiDung({ tenDangNhap, matKhau })
+    await nguoiDungMoi.save()
+    
+    res.json({ thanhCong: true, thongBao: 'Đăng ký thành công! 🎉 Đăng nhập thôi!' })
+  } catch (err) {
+    res.json({ loi: 'Lỗi: ' + err.message })
+  }
+})
+
+// === ĐĂNG NHẬP ===
+app.post('/api/dang-nhap', async (req, res) => {
   try {
-    const uocMoi = new UocMo({
-      noiDung: req.body.noiDung,
-      mucTien: req.body.mucTien || 0
-    });
-    await uocMoi.save();
-    res.json(uocMoi);
-  } catch (loi) {
-    res.status(500).json({ loi: 'Lỗi thêm dữ liệu' });
-  }
-});
+    const { tenDangNhap, matKhau } = req.body
+    const nguoiDung = await NguoiDung.findOne({ tenDangNhap, matKhau })
+    
+    if (!nguoiDung) {
+      return res.json({ loi: 'Sai tên đăng nhập hoặc mật khẩu! 🤔' })
+    }
 
-// Đánh dấu hoàn thành
-ungDung.put('/api/uoc-mo/:id', async (req, res) => {
+    res.json({ 
+      thanhCong: true, 
+      nguoiDungId: nguoiDung._id,
+      tenDangNhap: nguoiDung.tenDangNhap,
+      thongBao: 'Chào mừng trở lại, ' + nguoiDung.tenDangNhap + '! 🌟'
+    })
+  } catch (err) {
+    res.json({ loi: 'Lỗi: ' + err.message })
+  }
+})
+
+// === LẤY DANH SÁCH ƯỚC MƠ ===
+app.get('/api/uoc-mo', async (req, res) => {
   try {
-    const capNhat = await UocMo.findByIdAndUpdate(
-      req.params.id,
-      { hoanThanh: req.body.hoanThanh },
-      { new: true }
-    );
-    res.json(capNhat);
-  } catch (loi) {
-    res.status(500).json({ loi: 'Lỗi cập nhật' });
+    const { nguoiDungId } = req.query
+    if (!nguoiDungId) return res.json([])
+    
+    const danhSach = await UocMo.find({ nguoiDungId }).sort({ _id: -1 })
+    res.json(danhSach)
+  } catch (err) {
+    res.json({ loi: 'Lỗi lấy dữ liệu: ' + err.message })
   }
-});
+})
 
-// Xóa
-ungDung.delete('/api/uoc-mo/:id', async (req, res) => {
+// === THÊM ƯỚC MƠ ===
+app.post('/api/uoc-mo', async (req, res) => {
   try {
-    await UocMo.findByIdAndDelete(req.params.id);
-    res.json({ thongBao: 'Đã xóa thành công' });
-  } catch (loi) {
-    res.status(500).json({ loi: 'Lỗi xóa' });
+    const { noiDung, mucTien, nguoiDungId } = req.body
+    if (!nguoiDungId) {
+      return res.json({ loi: 'Bạn cần đăng nhập trước! 🔐' })
+    }
+    
+    const uocMoMoi = new UocMo({ noiDung, mucTien, nguoiDungId })
+    await uocMoMoi.save()
+    res.json(uocMoMoi)
+  } catch (err) {
+    res.json({ loi: 'Lỗi lưu: ' + err.message })
   }
-});
+})
 
-// 7. CHẠY SERVER
-ungDung.listen(PORT, () => {
-  console.log('=====================================');
-  console.log(`🚀 Server chạy tại: http://localhost:${PORT}`);
-  console.log(`📡 Sẵn sàng nhận yêu cầu từ React!`);
-  console.log('=====================================');
-});
+// === CHẠY SERVER ===
+app.listen(PORT, () => {
+  console.log(`🚀 Server chạy tại cổng ${PORT}`)
+  console.log(`✅ Sẵn sàng nhận yêu cầu từ React!`)
+})
