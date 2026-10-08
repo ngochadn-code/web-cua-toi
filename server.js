@@ -3,7 +3,8 @@ const mongoose = require('mongoose')
 const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-
+// Đầu file, thêm ngay sau các require
+require('dotenv').config()
 const app = express()
 const PORT = process.env.PORT || 8888
 
