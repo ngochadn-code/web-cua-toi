@@ -12,7 +12,10 @@ const PORT = process.env.PORT || 8888
 const KHOA_JWT = process.env.JWT_SECRET || 'khoa_bi_mat_so_01_2026_uy_tin'
 
 // === CẤU HÌNH ===
-app.use(cors())
+app.use(cors({
+  origin: ['https://my-app-fawn-gamma-27.vercel.app', 'http://localhost:5173'],
+  credentials: true
+}))
 app.use(express.json())
 
 // === KẾT NỐI MONGODB ===
