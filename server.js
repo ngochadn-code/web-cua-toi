@@ -155,7 +155,20 @@ app.delete('/api/uoc-mo/:id', async (req, res) => {
     res.json({ loi: 'Lỗi xóa: ' + err.message })
   }
 })
-
+// === TRANG CHỦ — XÁC NHẬN SERVER ĐANG CHẠY ===
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <body style="font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);margin:0">
+        <div style="background:white;padding:3rem;border-radius:20px;text-align:center;box-shadow:0 15px 40px rgba(0,0,0,0.2)">
+          <h1 style="color:#4a5568;margin:0">✨ Sổ Ước Mơ — Server ✨</h1>
+          <p style="color:#718096;font-size:1.2rem">✅ Server đang chạy ổn!</p>
+          <p style="color:#718096">Sử dụng ứng dụng tại trang Frontend nhé 💚</p>
+        </div>
+      </body>
+    </html>
+  `)
+})
 // === CHẠY SERVER ===
 app.listen(PORT, () => {
   console.log(`🚀 Server chạy tại cổng ${PORT}`)
